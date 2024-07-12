@@ -35,6 +35,9 @@ espada = {
 
 comandos = ['A atual lista de comando são:','!start - Inicia um teste do RPG']
 
+def detalhes(arma, message):
+    return message.channel.send(f"Nome: {arma['Nome']},\nRaridade: {arma['Raridade']}, \nTipo: {arma['Tipo']}, \nDano: {arma['Dano']}")
+
 
 async def Start(message):
     await message.channel.send('Você deseja LUTAR? \n 1 - SIM \n 2 - NÃO')
@@ -67,11 +70,11 @@ async def handle_response(message):
             else:
                 await message.channel.send("Selecione um dos valores válidos!")
             await message.channel.send(f"A sua arma atual é o(a) {arma_player}")
+            await detalhes(arma_player, message)
+
             conversations[user_id] = 'weapon_detais'
 
-        elif conversations[user_id] == 'weapon_detais':
-            if arma_player == "Espada":
-                await message.channel.send(f"Nome")
+                
 
             
 
@@ -110,7 +113,6 @@ async def on_member_join(member):
 
 @client.event
 async def on_message(message):
-    print(message)
 
     if message.content == "!help":
         for i in comandos:
