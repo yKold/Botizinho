@@ -1,7 +1,9 @@
 import os
 import discord
 import random 
+import armas
 from dotenv import load_dotenv
+
 
 # Variável para armazenar o estado da conversa
 conversations = {}
@@ -10,34 +12,12 @@ vida_player = 100
 vida_monstro = 50
 arma_player = "Nenhuma"
 
-corte_preciso = {
-    "Dano": 18,
-}
-resistencia_ao_desgaste = {
-    "Vida": 20,
-}
-
-espada = {
-    "Nome": "Gloriosa",
-    "Raridade": "Comum",
-    "Tipo": "Espada longa",
-    "Material": "Aço",
-    "Dano": 15, 
-    "Peso": "2.5 kg",
-    "Descrição": "Uma espada longa com uma lâmina afiada e elegante, ideal para combates corpo a corpo.",
-    "Habilidades": {
-        "corte_preciso": corte_preciso,
-        "resistencia_ao_desgaste": resistencia_ao_desgaste},
-    "Origem": "Forjada pelos mestres ferreiros da cidade de Valoria",
-    "Dono atual": "Sir Roland, o Bravo"
-}
 
 
 comandos = ['A atual lista de comando são:','!start - Inicia um teste do RPG']
 
-def detalhes(arma, message):
-    return message.channel.send(f"Nome: {arma['Nome']},\nRaridade: {arma['Raridade']}, \nTipo: {arma['Tipo']}, \nDano: {arma['Dano']}")
-
+async def detalhes(arma, message):
+    await message.channel.send(f"-----Detalhes da sua arma-----   \nNome: {arma['Nome']}, \nRaridade: {arma['Raridade']}, \nTipo: {arma['Tipo']}")
 
 async def Start(message):
     await message.channel.send('Você deseja LUTAR? \n 1 - SIM \n 2 - NÃO')
@@ -62,18 +42,25 @@ async def handle_response(message):
 
         elif conversations[user_id] == 'choose_weapon':
             if message.content == "1":
-                arma_player = "Machado"
+                arma_player = armas.machado
             elif message.content == "2":
-                arma_player = "Espada"
+                arma_player = armas.espada
             elif message.content == "3":
-                arma_player = "Arco"
+                arma_player = "arco"
             else:
                 await message.channel.send("Selecione um dos valores válidos!")
-            await message.channel.send(f"A sua arma atual é o(a) {arma_player}")
             await detalhes(arma_player, message)
 
             conversations[user_id] = 'weapon_detais'
-
+        
+        elif conversations[user_id] == 'weapon_detais':
+            await detalhes(arma_player, message)
+# CONTINUAR DAQUI 
+#
+#
+###
+#
+###
                 
 
             
