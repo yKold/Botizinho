@@ -1,7 +1,9 @@
 import os
 import discord
 import random 
-import armas
+import armas.todas_espadas as espadas
+import armas.todos_arcos as arcos
+import armas.todos_machados as machados
 from dotenv import load_dotenv
 
 
@@ -11,10 +13,12 @@ conversations = {}
 vida_player = 100
 vida_monstro = 50
 arma_player = "Nenhuma"
+vida_base = 50
 
 
 
 comandos = ['A atual lista de comando são:','!start - Inicia um teste do RPG']
+
 
 async def detalhes(arma, message):
     await message.channel.send(f"-----Detalhes da sua arma-----   \nNome: {arma['Nome']}, \nRaridade: {arma['Raridade']}, \nTipo: {arma['Tipo']}")
@@ -24,37 +28,87 @@ async def Start(message):
     conversations[message.author.id] = 'start'
 
 async def handle_response(message):
+    global arma_player, vida_monstro, vida_base
     user_id = message.author.id
+    conteudo = message.content
+    async def env_msg(mensagem):
+        await message.channel.send(mensagem)
+
     if user_id in conversations:
+
         # Verifica em qual parte da conversa o usuário está
         if conversations[user_id] == 'start':
-            if message.content == '1':
-                await message.channel.send('Ótimo! Vamos lutar então!')
-                await message.channel.send(f'\n Player Life: {vida_player}')
-                await message.channel.send('Qual arma você prefere usar? \n 1 - Machado \n 2 - Espada \n 3 - Arco')
+            if conteudo == '1':
+                await env_msg('Ótimo! Vamos lutar então!')
+                await env_msg(f'\n Player Life: {vida_player}')
+                await env_msg('Qual arma você prefere usar? \n 1 - Machado \n 2 - Espada \n 3 - Arco')
 
                 conversations[user_id] = 'choose_weapon'  # Define novo estado da conversa
-            elif message.content == '2':
-                await message.channel.send('Tudo bem, até mais!')
+            elif conteudo == '2':
+                await env_msg('Tudo bem, até mais!')
                 del conversations[user_id]  # Limpa o estado da conversa
             else:
-                await message.channel.send('Por favor, responda com 1 ou 2.')
+                await env_msg('Por favor, responda com 1 ou 2.')
+            
 
         elif conversations[user_id] == 'choose_weapon':
-            if message.content == "1":
-                arma_player = armas.machado
-            elif message.content == "2":
-                arma_player = armas.espada
-            elif message.content == "3":
-                arma_player = "arco"
+            if conteudo == "1":
+                arma_player = machados.machado001
+            elif conteudo == "2":
+                arma_player = espadas.espada001
+            elif conteudo == "3":
+                arma_player = arcos.arco001
             else:
-                await message.channel.send("Selecione um dos valores válidos!")
+                await env_msg("Selecione um dos valores válidos!")
             await detalhes(arma_player, message)
 
             conversations[user_id] = 'weapon_detais'
+
+            await env_msg("Deseja continuar? \n1 - Sim \n2 - Não")
         
         elif conversations[user_id] == 'weapon_detais':
-            await detalhes(arma_player, message)
+            if conteudo == "1":
+                await env_msg(f"A vida atual do player é {vida_player}.")
+                await env_msg(f"O monstro está com {vida_monstro} de vida!")
+                await env_msg("Você deseja atacar? \n1 - Sim \n2 - Não")
+                conversations[user_id] = "pergunta01"
+            else:
+                await env_msg("Voltando ao inicio!")
+                del conversations[user_id]
+
+        elif conversations[user_id] == "pergunta01":
+            if conteudo == "2":
+                await env_msg("Ok! Voltando ao início.")
+                del conversations[user_id]
+            elif conteudo == "1":
+                await env_msg("Qual habilidade deseja usar?\n")
+                for i in arma_player["Habilidades"]:
+                    await env_msg(i)
+                conversations[user_id] = "pergunta02"
+        
+        elif conversations[user_id] == "pergunta02":
+            for i in arma_player["Habilidades"]:
+                if message.content == i:
+                    vida_monstro -= arma_player["Habilidades"][i]["Dano"]
+                    dano_levado = arma_player["Habilidades"][i]["Dano"]
+                    await env_msg(f"O monstro recebeu {dano_levado} de DANO!")
+                    if vida_monstro > 0:
+                        await env_msg(f"A atual vida do monstro é {vida_monstro:.2f}.")
+                        await env_msg("Use uma habilidade novamente!")
+                        conversations[user_id] = "pergunta02"
+                    else:
+                        vida_monstro = 0
+                        await env_msg(f"A atual vida do monstro é {vida_monstro:.2f}.")
+                        await env_msg("Você eliminou o monstro")
+                        vida_base *= 1.3
+                        vida_monstro += vida_base
+                        del conversations[user_id]
+                    continue
+
+            
+
+                
+
 # CONTINUAR DAQUI 
 #
 #
