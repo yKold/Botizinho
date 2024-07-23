@@ -16,7 +16,6 @@ arma_player = "Nenhuma"
 vida_base = 50
 
 
-
 comandos = ['A atual lista de comando são:','!start - Inicia um teste do RPG']
 
 
@@ -187,3 +186,4 @@ async def on_message(message):
         await handle_response(message)
 
 client.run(TOKEN)
+
