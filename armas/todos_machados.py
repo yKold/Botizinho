@@ -9,8 +9,8 @@ machado001 = {
     "Peso": "3 kg",
     "Descrição": "Um machado robusto e poderoso, com uma lâmina ampla e dentes afiados, ideal para cortar árvores e inimigos igualmente.",
     "Habilidades": {
-        "corte_demoniaco": ta.corte_demoniaco,
-        "forca_destrutiva": ta.forca_destrutiva
+        "Corte Demoniaco": ta.corte_demoniaco,
+        "Forca Destrutiva": ta.forca_destrutiva
     },
     "Origem": "Forjado nas montanhas vulcânicas de Drak'Thar",
     "Dono atual": "Ghor, o Destruidor"

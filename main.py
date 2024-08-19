@@ -1,9 +1,11 @@
 import os
 import discord
+from discord.ext import commands
 import random 
 import armas.todas_espadas as espadas
 import armas.todos_arcos as arcos
 import armas.todos_machados as machados
+import monstro as mstr
 from dotenv import load_dotenv
 
 
@@ -11,7 +13,6 @@ from dotenv import load_dotenv
 conversations = {}
 
 vida_player = 100
-vida_monstro = 50
 arma_player = "Nenhuma"
 vida_base = 50
 
@@ -21,18 +22,20 @@ comandos = ['A atual lista de comando são:','!start - Inicia um teste do RPG']
 
 
 async def detalhes(arma, message):
-    await message.channel.send(f"-----Detalhes da sua arma-----   \nNome: {arma['Nome']}, \nRaridade: {arma['Raridade']}, \nTipo: {arma['Tipo']}")
+    await message.channel.send(f"-----Detalhes da sua arma-----   \nNome: {arma['Nome']}, \nRaridade: {arma['Raridade']}, \nTipo: {arma['Tipo']} \n----------------")
 
 async def Start(message):
-    await message.channel.send('Você deseja LUTAR? \n 1 - SIM \n 2 - NÃO')
+    await message.channel.send('Você deseja LUTAR? \n 1 - SIM \n 2 - NÃO \n----------------')
     conversations[message.author.id] = 'start'
 
 async def handle_response(message):
-    global arma_player, vida_monstro, vida_base
+    global arma_player, vida_base, monstro
     user_id = message.author.id
     conteudo = message.content
     async def env_msg(mensagem):
         await message.channel.send(mensagem)
+    monstro = mstr.CriarMonstroAleatorio(3)
+    
 
     if user_id in conversations:
 
@@ -41,6 +44,7 @@ async def handle_response(message):
             if conteudo == '1':
                 await env_msg('Ótimo! Vamos lutar então!')
                 await env_msg(f'\n Player Life: {vida_player}')
+                await env_msg("----------------")
                 await env_msg('Qual arma você prefere usar? \n 1 - Machado \n 2 - Espada \n 3 - Arco')
 
                 conversations[user_id] = 'choose_weapon'  # Define novo estado da conversa
@@ -69,7 +73,15 @@ async def handle_response(message):
         elif conversations[user_id] == 'weapon_detais':
             if conteudo == "1":
                 await env_msg(f"A vida atual do player é {vida_player}.")
-                await env_msg(f"O monstro está com {vida_monstro} de vida!")
+
+                await env_msg("----------------")
+                await env_msg(f"O monstro está com {monstro['vida']} de vida!")
+                await env_msg(f"Sua raça é {monstro['nome']}")
+                await env_msg(f"Suas habilidades são:")
+                for i in monstro['habilidades']:
+                    await env_msg(f"-{i}")
+                await env_msg("----------------")
+
                 await env_msg("Você deseja atacar? \n1 - Sim \n2 - Não")
                 conversations[user_id] = "pergunta01"
             else:
@@ -83,25 +95,25 @@ async def handle_response(message):
             elif conteudo == "1":
                 await env_msg("Qual habilidade deseja usar?\n")
                 for i in arma_player["Habilidades"]:
-                    await env_msg(i)
+                    await env_msg(f"-{i}")
                 conversations[user_id] = "pergunta02"
         
         elif conversations[user_id] == "pergunta02":
             for i in arma_player["Habilidades"]:
                 if message.content == i:
-                    vida_monstro -= arma_player["Habilidades"][i]["Dano"]
-                    dano_levado = arma_player["Habilidades"][i]["Dano"]
+                    monstro['vida'] -= arma_player["Habilidades"][i]['Dano']
+                    dano_levado = arma_player["Habilidades"][i]['Dano']
                     await env_msg(f"O monstro recebeu {dano_levado} de DANO!")
-                    if vida_monstro > 0:
-                        await env_msg(f"A atual vida do monstro é {vida_monstro:.2f}.")
+                    if monstro['vida'] > 0:
+                        await env_msg(f"A atual vida do monstro é {monstro['vida']:.2f}.")
                         await env_msg("Use uma habilidade novamente!")
                         conversations[user_id] = "pergunta02"
                     else:
-                        vida_monstro = 0
-                        await env_msg(f"A atual vida do monstro é {vida_monstro:.2f}.")
+                        monstro["vida"] = 0
+                        await env_msg(f"A atual vida do monstro é {monstro['vida']:.2f}.")
                         await env_msg("Você eliminou o monstro")
                         vida_base *= 1.3
-                        vida_monstro += vida_base
+                        monstro["vida"] += vida_base
                         del conversations[user_id]
                     continue
 
@@ -119,7 +131,6 @@ async def handle_response(message):
 
             
 
-
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
@@ -128,23 +139,24 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.guilds = True
 
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="%", intents=intents)
 
-@client.event
+
+@bot.event
 async def on_ready():
-    for guild in client.guilds:
+    for guild in bot.guilds:
         if guild.name == GUILD:
             break
 
     print(
-        f'{client.user} is connected to the following guild:\n'
+        f'{bot.user} is connected to the following guild:\n'
         f'{guild.name}(id: {guild.id})\n'
     )
 
     members = '\n - '.join([member.name for member in guild.members])
     print(f'Guild Members:\n - {members}')
 
-@client.event
+@bot.event
 async def on_member_join(member):
     await member.create_dm()
     await member.dm_channel.send(
@@ -152,31 +164,12 @@ async def on_member_join(member):
     )
     
 
-@client.event
+@bot.event
 async def on_message(message):
 
     if message.content == "!help":
         for i in comandos:
             await message.channel.send(i)
-
-    if message.author == client.user:
-        return
-
-    brooklyn_99_quotes = [
-        'I\'m the human form of the 💯 emoji.',
-        'Bingpot!',
-        (
-            'Cool. Cool cool cool cool cool cool cool, '
-            'no doubt no doubt no doubt no doubt.'
-        ),
-    ]
-
-    if message.content == '99!':
-        response = random.choice(brooklyn_99_quotes)
-        await message.channel.send(response)
-
-    if 'happy birthday' in message.content.lower():
-        await message.channel.send('Happy Birthday! 🎈🎉')
 
     if message.content == "!start":
         await Start(message)
@@ -186,4 +179,22 @@ async def on_message(message):
         
         await handle_response(message)
 
-client.run(TOKEN)
+@bot.command(name="99")
+async def nov_nov(ctx):
+    brooklyn_99_quotes = [
+        'I\'m the human form of the 💯 emoji.',
+        'Bingpot!',
+        (
+            'Cool. Cool cool cool cool cool cool cool, '
+            'no doubt no doubt no doubt no doubt.'
+        ),
+    ]
+    response = random.choice(brooklyn_99_quotes)
+    await ctx.send(response)
+
+@bot.command(name="happy birthday")
+async def niver(ctx):
+    response = 'Happy Birthday! 🎈🎉'
+    await ctx.send(response)
+
+bot.run(TOKEN)
