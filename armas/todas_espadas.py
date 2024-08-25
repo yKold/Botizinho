@@ -14,3 +14,4 @@ espada001 = {
     "Origem": "Forjada pelos mestres ferreiros da cidade de Valoria",
     "Dono atual": "Sir Roland, o Bravo"
 }
+
